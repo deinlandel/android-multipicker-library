@@ -716,19 +716,24 @@ public class FileProcessorThread extends Thread {
             if (bitmap == null) return;
 
             File file = new File(image.getOriginalPath());
-            out = new FileOutputStream(file);
-            Matrix matrix = new Matrix();
-            matrix.postRotate(rotateAngle);
-            bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(),
-                    bitmap.getHeight(), matrix, false);
-            bitmap.compress(Bitmap.CompressFormat.JPEG, quality, out);
+            try {
+                out = new FileOutputStream(file);
+                Matrix matrix = new Matrix();
+                matrix.postRotate(rotateAngle);
+                bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(),
+                        bitmap.getHeight(), matrix, false);
+                bitmap.compress(Bitmap.CompressFormat.JPEG, quality, out);
+            } finally {
+                if (out != null) try {
+                    out.close();
+                } catch (IOException ignored) { }
+            }
+            //This basically writes old exif data to new file. Thumbnail is not preserved, sadly...
+            originalExifInterface.setAttribute(ExifInterface.TAG_ORIENTATION, String.valueOf(ExifInterface.ORIENTATION_NORMAL));
+            originalExifInterface.saveAttributes();
             image.setOrientation(ExifInterface.ORIENTATION_NORMAL);
         } catch (IOException e) {
             e.printStackTrace(); //TODO proper exception handling
-        } finally {
-            if (out != null) try {
-                out.close();
-            } catch (IOException ignored) { }
         }
     }
 
