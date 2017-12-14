@@ -125,9 +125,13 @@ public class FileProcessorThread extends Thread {
 
     private void postProcess(ChosenFile file) throws PickerException {
         file.setCreatedAt(Calendar.getInstance().getTime());
+        recalculateSize(file);
+        copyFileToFolder(file);
+    }
+
+    protected static void recalculateSize(ChosenFile file) {
         File f = new File(file.getOriginalPath());
         file.setSize(f.length());
-        copyFileToFolder(file);
     }
 
     private void copyFileToFolder(ChosenFile file) throws PickerException {
@@ -684,6 +688,7 @@ public class FileProcessorThread extends Thread {
                     image.setWidth(scaledDimension[0]);
                     image.setHeight(scaledDimension[1]);
                     stream.close();
+                    recalculateSize(image);
                 }
             }
         } catch (Exception e) {
@@ -732,6 +737,7 @@ public class FileProcessorThread extends Thread {
             originalExifInterface.setAttribute(ExifInterface.TAG_ORIENTATION, String.valueOf(ExifInterface.ORIENTATION_NORMAL));
             originalExifInterface.saveAttributes();
             image.setOrientation(ExifInterface.ORIENTATION_NORMAL);
+            recalculateSize(image);
         } catch (IOException e) {
             e.printStackTrace(); //TODO proper exception handling
         }
