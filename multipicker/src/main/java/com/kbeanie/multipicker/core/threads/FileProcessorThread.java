@@ -674,9 +674,13 @@ public class FileProcessorThread extends Thread {
                             bitmap.getHeight(), matrix, false);
                     bitmap.compress(Bitmap.CompressFormat.JPEG, quality, stream);
                     image.setOriginalPath(file.getAbsolutePath());
-                    ExifInterface resizedExifInterface = new ExifInterface(file.getAbsolutePath());
-                    if (!shouldRotateBitmap) resizedExifInterface.setAttribute(ExifInterface.TAG_ORIENTATION, originalRotation);
-                    resizedExifInterface.saveAttributes();
+
+                    if (!shouldRotateBitmap) { //if we rotated the image, its exif rotate angle will be 0
+                        ExifInterface resizedExifInterface = new ExifInterface(file.getAbsolutePath());
+                        resizedExifInterface.setAttribute(ExifInterface.TAG_ORIENTATION, originalRotation);
+                        resizedExifInterface.saveAttributes();
+                    }
+
                     image.setWidth(scaledDimension[0]);
                     image.setHeight(scaledDimension[1]);
                     stream.close();
@@ -692,6 +696,40 @@ public class FileProcessorThread extends Thread {
             }
         }
         return image;
+    }
+
+    protected void rotateBitmapByExif(ChosenImage image, int quality) {
+        FileOutputStream out = null;
+        try {
+            ExifInterface originalExifInterface = new ExifInterface(image.getOriginalPath());
+
+            int rotateAngle = getRotateAngle(originalExifInterface);
+            if (rotateAngle == 0) return;
+            BufferedInputStream scaledInputStream = null;
+            Bitmap bitmap;
+            try {
+                scaledInputStream = new BufferedInputStream(new FileInputStream(image.getOriginalPath()));
+                bitmap = BitmapFactory.decodeStream(scaledInputStream);
+            } finally {
+                if (scaledInputStream != null) scaledInputStream.close();
+            }
+            if (bitmap == null) return;
+
+            File file = new File(image.getOriginalPath());
+            out = new FileOutputStream(file);
+            Matrix matrix = new Matrix();
+            matrix.postRotate(rotateAngle);
+            bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(),
+                    bitmap.getHeight(), matrix, false);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, quality, out);
+            image.setOrientation(ExifInterface.ORIENTATION_NORMAL);
+        } catch (IOException e) {
+            e.printStackTrace(); //TODO proper exception handling
+        } finally {
+            if (out != null) try {
+                out.close();
+            } catch (IOException ignored) { }
+        }
     }
 
     protected String downScaleAndSaveImage(String image, int scale, int quality) throws PickerException {

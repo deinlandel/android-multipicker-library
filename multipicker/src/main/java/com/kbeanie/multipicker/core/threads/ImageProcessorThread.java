@@ -82,7 +82,7 @@ public final class ImageProcessorThread extends FileProcessorThread {
         if (maxImageWidth != -1 && maxImageHeight != -1) {
             image = ensureMaxWidthAndHeight(maxImageWidth, maxImageHeight, quality, image, shouldRotateBitmap);
         } else if (shouldRotateBitmap) {
-            //TODO
+            rotateBitmapByExif(image, quality);
         }
         LogUtils.d(TAG, "postProcessImage: " + image.getMimeType());
         if (shouldGenerateMetadata) {

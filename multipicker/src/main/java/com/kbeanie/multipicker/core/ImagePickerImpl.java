@@ -78,6 +78,8 @@ public abstract class ImagePickerImpl extends PickerManager {
     /**
      * Rotate actual bitmap according to orientation. Default value is {@link Boolean#FALSE}
      *
+     * WARNING: this will cause image to be re-compressed with quality specified in {@link  ImagePickerImpl#setQuality}
+     *
      * @param rotateBitmap
      */
     public void shouldRotateBitmap(boolean rotateBitmap) {
