@@ -672,7 +672,8 @@ public class FileProcessorThread extends Thread {
 
                     Matrix matrix = new Matrix();
                     matrix.postScale((float) scaledDimension[0] / imageWidth, (float) scaledDimension[1] / imageHeight);
-                    if (shouldRotateBitmap) matrix.postRotate(getRotateAngle(originalExifInterface));
+                    if (shouldRotateBitmap)
+                        matrix.postRotate(getRotateAngle(originalExifInterface));
 
                     bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(),
                             bitmap.getHeight(), matrix, false);
@@ -728,15 +729,54 @@ public class FileProcessorThread extends Thread {
                 bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(),
                         bitmap.getHeight(), matrix, false);
                 bitmap.compress(Bitmap.CompressFormat.JPEG, quality, out);
+            } catch (OutOfMemoryError error) {
+                return;
             } finally {
                 if (out != null) try {
                     out.close();
-                } catch (IOException ignored) { }
+                } catch (IOException ignored) {
+                }
+
             }
             //This basically writes old exif data to new file. Thumbnail is not preserved, sadly...
             originalExifInterface.setAttribute(ExifInterface.TAG_ORIENTATION, String.valueOf(ExifInterface.ORIENTATION_NORMAL));
             originalExifInterface.saveAttributes();
             image.setOrientation(ExifInterface.ORIENTATION_NORMAL);
+            recalculateSize(image);
+        } catch (IOException e) {
+            e.printStackTrace(); //TODO proper exception handling
+        }
+    }
+
+    protected void ensureRequiredQuality(ChosenImage image, int quality) {
+        FileOutputStream out = null;
+        try {
+            BufferedInputStream scaledInputStream = null;
+            Bitmap bitmap;
+            try {
+                scaledInputStream = new BufferedInputStream(new FileInputStream(image.getOriginalPath()));
+                bitmap = BitmapFactory.decodeStream(scaledInputStream);
+            } finally {
+                if (scaledInputStream != null) scaledInputStream.close();
+            }
+            if (bitmap == null) return;
+
+            File file = new File(image.getOriginalPath());
+            try {
+                out = new FileOutputStream(file);
+                Matrix matrix = new Matrix();
+                bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(),
+                        bitmap.getHeight(), matrix, false);
+                bitmap.compress(Bitmap.CompressFormat.JPEG, quality, out);
+            } catch (OutOfMemoryError error) {
+                return;
+            } finally {
+                if (out != null) try {
+                    out.close();
+                } catch (IOException ignored) {
+                }
+
+            }
             recalculateSize(image);
         } catch (IOException e) {
             e.printStackTrace(); //TODO proper exception handling
