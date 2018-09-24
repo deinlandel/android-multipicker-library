@@ -5,6 +5,11 @@ apply plugin: 'signing'
 version = "1.3"
 group = "com.kbeanie"
 
+//def sonatypeRepo = ""
+//def sonatypeUsername = ""
+//def sonatypePassword = ""
+//def scmUrl = ""
+
 signing {
     required {
         gradle.taskGraph.hasTask("uploadArchives")
@@ -24,11 +29,22 @@ uploadArchives {
         pom.artifactId = "multipicker"
         pom.version = version
 
+        repository(url: sonatypeRepo) {
+            authentication(userName: sonatypeUsername,
+                    password: sonatypePassword)
+        }
+
         pom.project {
             name 'Android Multipicker Library'
             packaging 'aar'
             description 'Multipicker Library for Android Applications'
             url 'https://github.com/coomar2841/android-multipicker-library'
+
+            scm {
+                url scmUrl
+                connection scmUrl
+                developerConnection scmUrl
+            }
 
             licenses {
                 license {
