@@ -753,6 +753,8 @@ public class FileProcessorThread extends Thread {
         try {
             BufferedInputStream scaledInputStream = null;
             Bitmap bitmap;
+            ExifInterface originalExifInterface = new ExifInterface(image.getOriginalPath());
+            String originalRotation = originalExifInterface.getAttribute(ExifInterface.TAG_ORIENTATION);
             try {
                 scaledInputStream = new BufferedInputStream(new FileInputStream(image.getOriginalPath()));
                 bitmap = BitmapFactory.decodeStream(scaledInputStream);
@@ -768,6 +770,9 @@ public class FileProcessorThread extends Thread {
                 bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(),
                         bitmap.getHeight(), matrix, false);
                 bitmap.compress(Bitmap.CompressFormat.JPEG, quality, out);
+                ExifInterface compressedExifInterface = new ExifInterface(file.getAbsolutePath());
+                compressedExifInterface.setAttribute(ExifInterface.TAG_ORIENTATION, originalRotation);
+                compressedExifInterface.saveAttributes();
             } catch (OutOfMemoryError error) {
                 return;
             } finally {
