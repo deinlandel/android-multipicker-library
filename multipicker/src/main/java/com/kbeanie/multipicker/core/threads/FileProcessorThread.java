@@ -750,6 +750,8 @@ public class FileProcessorThread extends Thread {
             recalculateSize(image);
         } catch (IOException e) {
             throw new PickerException(e);
+        } catch (OutOfMemoryError error) {
+            throw new PickerException("Out of memory while processing image: " + image);
         } catch (Exception e) {
             throw new PickerException("Error while processing image: " + image);
         } finally {
