@@ -33,6 +33,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -728,43 +729,35 @@ public class FileProcessorThread extends Thread {
         }
     }
 
-    protected void ensureRequiredQuality(ChosenImage image, int quality) {
+    protected void ensureRequiredQuality(ChosenImage image, int quality) throws PickerException {
         FileOutputStream out = null;
+        BufferedInputStream scaledInputStream = null;
         try {
-            BufferedInputStream scaledInputStream = null;
-            Bitmap bitmap;
             ExifInterface originalExifInterface = new ExifInterface(image.getOriginalPath());
             String originalRotation = originalExifInterface.getAttribute(ExifInterface.TAG_ORIENTATION);
-            try {
-                scaledInputStream = new BufferedInputStream(new FileInputStream(image.getOriginalPath()));
-                bitmap = BitmapFactory.decodeStream(scaledInputStream);
-            } finally {
-                if (scaledInputStream != null) scaledInputStream.close();
-            }
-            if (bitmap == null) return;
+            scaledInputStream = new BufferedInputStream(new FileInputStream(image.getOriginalPath()));
+            Bitmap bitmap = BitmapFactory.decodeStream(scaledInputStream);
 
             File file = new File(image.getOriginalPath());
-            try {
-                out = new FileOutputStream(file);
-                Matrix matrix = new Matrix();
-                bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(),
-                        bitmap.getHeight(), matrix, false);
-                bitmap.compress(Bitmap.CompressFormat.JPEG, quality, out);
-                ExifInterface compressedExifInterface = new ExifInterface(file.getAbsolutePath());
-                compressedExifInterface.setAttribute(ExifInterface.TAG_ORIENTATION, originalRotation);
-                compressedExifInterface.saveAttributes();
-            } catch (OutOfMemoryError error) {
-                return;
-            } finally {
-                if (out != null) try {
-                    out.close();
-                } catch (IOException ignored) {
-                }
-
-            }
+            out = new FileOutputStream(file);
+            Matrix matrix = new Matrix();
+            bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(),
+                    matrix, false);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, quality, out);
+            ExifInterface compressedExifInterface = new ExifInterface(file.getAbsolutePath());
+            compressedExifInterface.setAttribute(ExifInterface.TAG_ORIENTATION, originalRotation);
+            compressedExifInterface.saveAttributes();
             recalculateSize(image);
         } catch (IOException e) {
-            e.printStackTrace(); //TODO proper exception handling
+            throw new PickerException(e);
+        } catch (OutOfMemoryError error) {
+            throw new PickerException("Out of memory while processing image: " + image);
+        } catch (Exception e) {
+            throw new PickerException("Error while processing image: " + image);
+        } finally {
+            close(scaledInputStream);
+            flush(out);
+            close(out);
         }
     }
 
