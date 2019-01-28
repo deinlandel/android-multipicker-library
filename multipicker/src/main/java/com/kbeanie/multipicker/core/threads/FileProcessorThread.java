@@ -33,7 +33,6 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -369,7 +368,7 @@ public class FileProcessorThread extends Thread {
         // DocumentProvider
         if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) {
             // ExternalStorageProvider
-            if (isDownloadsDocument(uri)) {
+            /*if (isDownloadsDocument(uri)) {
                 final String id = DocumentsContract.getDocumentId(uri);
                 if (id.startsWith("raw:")) {
                     String[] data = new String[2];
@@ -383,7 +382,38 @@ public class FileProcessorThread extends Thread {
                             Uri.parse("content://downloads/public_downloads"), Long.valueOf(id));
                 }
                 return getDataAndMimeType(contentUri, null, null, file.getType());
+            }*/
+
+            if (isDownloadsDocument(uri)) {
+                final String id = DocumentsContract.getDocumentId(uri);
+                if (id.startsWith("raw:")) {
+                    String[] data = new String[2];
+                    data[0] = id.replaceFirst("raw:", "");
+                    data[1] = null;
+                    return data;
+                }
+                Uri contentUri = uri;
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+
+                    String[] contentUriPrefixesToTry = new String[]{
+                            "content://downloads/public_downloads",
+                            "content://downloads/my_downloads"
+                    };
+                    for (String contentUriPrefix : contentUriPrefixesToTry) {
+                        contentUri = ContentUris.withAppendedId(Uri.parse(contentUriPrefix), Long.valueOf(id));
+                        try {
+                            String[] data = getDataAndMimeType(contentUri, null, null, file.getType());
+                            if (data != null) {
+                                return data;
+                            }
+                        } catch (Exception ignored) {
+                        }
+                    }
+                } else {
+                    return getDataAndMimeType(contentUri, null, null, file.getType());
+                }
             }
+
             // MediaProvider
             else if (isMediaDocument(uri)) {
                 final String docId = DocumentsContract.getDocumentId(uri);
