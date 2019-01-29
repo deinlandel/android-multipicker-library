@@ -368,22 +368,6 @@ public class FileProcessorThread extends Thread {
         // DocumentProvider
         if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) {
             // ExternalStorageProvider
-            /*if (isDownloadsDocument(uri)) {
-                final String id = DocumentsContract.getDocumentId(uri);
-                if (id.startsWith("raw:")) {
-                    String[] data = new String[2];
-                    data[0] = id.replaceFirst("raw:", "");
-                    data[1] = null;
-                    return data;
-                }
-                Uri contentUri = uri;
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-                    contentUri = ContentUris.withAppendedId(
-                            Uri.parse("content://downloads/public_downloads"), Long.valueOf(id));
-                }
-                return getDataAndMimeType(contentUri, null, null, file.getType());
-            }*/
-
             if (isDownloadsDocument(uri)) {
                 final String id = DocumentsContract.getDocumentId(uri);
                 if (id.startsWith("raw:")) {
