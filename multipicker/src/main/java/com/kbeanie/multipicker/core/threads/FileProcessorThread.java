@@ -618,7 +618,7 @@ public class FileProcessorThread extends Thread {
             counter++;
             if (fileName.contains(".")) {
                 int indexOfDot = fileName.lastIndexOf(".");
-                probableFileName = fileName.substring(0, indexOfDot - 1) + "-" + counter + "." + fileName.substring(indexOfDot + 1);
+                probableFileName = fileName.substring(0, indexOfDot) + "-" + counter + "." + fileName.substring(indexOfDot + 1);
             } else {
                 probableFileName = fileName + "(" + counter + ")";
             }
