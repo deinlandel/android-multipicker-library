@@ -2,17 +2,9 @@ package com.kbeanie.multipicker.sample;
 
 import android.app.Application;
 
-<<<<<<< HEAD
 import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.ads.RequestConfiguration;
 import com.kbeanie.multipicker.core.PickerManager;
-=======
-import com.crashlytics.android.Crashlytics;
-import com.google.android.gms.ads.MobileAds;
-import com.kbeanie.multipicker.api.Picker;
-import com.kbeanie.multipicker.core.PickerManager;
-import com.kbeanie.multipicker.sample.utils.PickerUtils;
->>>>>>> cdcd812ef0470efebecc26929a4dd26c488323a3
 
 import java.util.Arrays;
 
@@ -25,7 +17,6 @@ public class AbApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-<<<<<<< HEAD
         MobileAds.initialize(this);
         setupAdmobConfiguration();
         PickerManager.debugglable = true;

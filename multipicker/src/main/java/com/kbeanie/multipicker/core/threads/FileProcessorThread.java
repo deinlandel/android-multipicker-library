@@ -653,6 +653,7 @@ public class FileProcessorThread extends Thread {
     }
 
     protected ChosenImage ensureMaxWidthAndHeight(int maxWidth, int maxHeight, int quality, ChosenImage image, boolean shouldRotateBitmap) {
+        FileOutputStream stream = null;
         try {
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inJustDecodeBounds = true;
