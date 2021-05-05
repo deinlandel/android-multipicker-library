@@ -397,7 +397,6 @@ public class FileProcessorThread extends Thread {
                     return getDataAndMimeType(contentUri, null, null, file.getType());
                 }
             }
-
             // MediaProvider
             else if (isMediaDocument(uri)) {
                 final String docId = DocumentsContract.getDocumentId(uri);

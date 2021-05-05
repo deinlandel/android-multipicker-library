@@ -37,7 +37,6 @@ public class AbActivity extends AppCompatActivity {
         setupAds();
     }
 
-
     protected void setupAds() {
         adView = (AdView) findViewById(R.id.adView);
         AdRequest.Builder builder = new AdRequest.Builder();
