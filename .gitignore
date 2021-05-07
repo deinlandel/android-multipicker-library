@@ -1,5 +1,7 @@
 *.iml
 .gradle
+.idea/caches/
+.idea/codeStyles/
 /local.properties
 /.idea/workspace.xml
 /.idea/libraries
@@ -9,8 +11,11 @@
 /build
 /captures
 multipicker/key-file.gpg
-gradle.properties
 app/fabric.properties
 /extras/secret.properties
 /extras/release.keystore
 /app/src/main/assets/api_keys.json
+.idea/
+/app/release/*
+/extras/key-file.gpg
+/extras/private_key.pepk
