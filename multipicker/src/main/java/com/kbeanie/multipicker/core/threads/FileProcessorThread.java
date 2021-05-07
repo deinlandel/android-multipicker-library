@@ -377,14 +377,12 @@ public class FileProcessorThread extends Thread {
                     return data;
                 }
                 Uri contentUri = uri;
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
 
-                String[] contentUriPrefixesToTry = new String[]{
-                        "content://downloads/public_downloads",
-                        "content://downloads/my_downloads"
-                };
-
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-
+                    String[] contentUriPrefixesToTry = new String[]{
+                            "content://downloads/public_downloads",
+                            "content://downloads/my_downloads"
+                    };
                     for (String contentUriPrefix : contentUriPrefixesToTry) {
                         contentUri = ContentUris.withAppendedId(Uri.parse(contentUriPrefix), Long.valueOf(id));
                         try {
@@ -395,13 +393,10 @@ public class FileProcessorThread extends Thread {
                         } catch (Exception ignored) {
                         }
                     }
-
                 } else {
                     return getDataAndMimeType(contentUri, null, null, file.getType());
                 }
             }
-
-
             // MediaProvider
             else if (isMediaDocument(uri)) {
                 final String docId = DocumentsContract.getDocumentId(uri);
@@ -439,7 +434,7 @@ public class FileProcessorThread extends Thread {
             return data;
         }
 
-        return null;
+        return new String[]{null, null};
     }
 
     private String[] getDataAndMimeType(Uri uri, String selection,
@@ -464,7 +459,7 @@ public class FileProcessorThread extends Thread {
             if (cursor != null)
                 cursor.close();
         }
-        return null;
+        return data;
     }
 
     private boolean isExternalStorageDocument(Uri uri) {
@@ -658,6 +653,7 @@ public class FileProcessorThread extends Thread {
     }
 
     protected ChosenImage ensureMaxWidthAndHeight(int maxWidth, int maxHeight, int quality, ChosenImage image, boolean shouldRotateBitmap) {
+        FileOutputStream stream = null;
         try {
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inJustDecodeBounds = true;
@@ -687,7 +683,7 @@ public class FileProcessorThread extends Thread {
                     File file = new File(
                             (original.getParent() + File.separator + original.getName()
                                     .replace(".", "-resized.")));
-                    FileOutputStream stream = new FileOutputStream(file);
+                    stream = new FileOutputStream(file);
 
                     Matrix matrix = new Matrix();
                     matrix.postScale((float) scaledDimension[0] / imageWidth, (float) scaledDimension[1] / imageHeight);
@@ -712,7 +708,13 @@ public class FileProcessorThread extends Thread {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace(); //TODO proper exception handling
+            e.printStackTrace();
+        } finally {
+            try {
+                close(stream);
+            } catch (PickerException e) {
+                e.printStackTrace();
+            }
         }
         return image;
     }
@@ -894,7 +896,7 @@ public class FileProcessorThread extends Thread {
         try {
             ExifInterface exif = new ExifInterface(path);
             width = exif.getAttribute(ExifInterface.TAG_IMAGE_WIDTH);
-            if (width.equals("0")) {
+            if ("0".equals(width)) {
                 SoftReference<Bitmap> bmp = getBitmapImage(path);
                 width = Integer.toString(bmp.get().getWidth());
                 bmp.clear();
@@ -910,7 +912,7 @@ public class FileProcessorThread extends Thread {
         try {
             ExifInterface exif = new ExifInterface(path);
             height = exif.getAttribute(ExifInterface.TAG_IMAGE_LENGTH);
-            if (height.equals("0")) {
+            if ("0".equals(height)) {
                 SoftReference<Bitmap> bmp = getBitmapImage(path);
                 height = Integer.toString(bmp.get().getHeight());
                 bmp.clear();

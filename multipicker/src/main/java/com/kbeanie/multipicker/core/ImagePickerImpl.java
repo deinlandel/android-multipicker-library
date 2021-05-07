@@ -8,8 +8,9 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.support.v4.app.Fragment;
-import android.support.v4.content.FileProvider;
+
+import androidx.core.content.FileProvider;
+import androidx.fragment.app.Fragment;
 
 import com.kbeanie.multipicker.api.CacheLocation;
 import com.kbeanie.multipicker.api.CameraImagePicker;
@@ -151,7 +152,15 @@ public abstract class ImagePickerImpl extends PickerManager {
     }
 
     protected String pickLocalImage() {
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        Intent intent;
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT){
+            intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, false);
+            intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+        }else{
+            intent = new Intent(Intent.ACTION_GET_CONTENT);
+        }
+        intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
         intent.setType("image/*");
         if (extras != null) {
             intent.putExtras(extras);
@@ -186,11 +195,7 @@ public abstract class ImagePickerImpl extends PickerManager {
 
     /**
      * Call this method from
-     * {@link Activity#onActivityResult(int, int, Intent)}
-     * OR
-     * {@link Fragment#onActivityResult(int, int, Intent)}
-     * OR
-     * {@link android.app.Fragment#onActivityResult(int, int, Intent)}
+     * onActivityResult()
      *
      * @param data
      */
